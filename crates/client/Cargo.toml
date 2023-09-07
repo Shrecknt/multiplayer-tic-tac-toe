@@ -1,0 +1,12 @@
+[package]
+name = "client"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+common = { workspace = true }
+server = { workspace = true }
+clap = { workspace = true }
+integer-encoding = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }

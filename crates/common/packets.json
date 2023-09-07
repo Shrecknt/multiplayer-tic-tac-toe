@@ -4,7 +4,25 @@
         "S2C": []
     },
     "Play": {
-        "C2S": [],
+        "C2S": [
+            {
+                "name": "PlaceCell",
+                "fields": [
+                    {
+                        "name": "x",
+                        "type": "i32"
+                    },
+                    {
+                        "name": "y",
+                        "type": "i32"
+                    },
+                    {
+                        "name": "cell_type",
+                        "type": "u8"
+                    }
+                ]
+            }
+        ],
         "S2C": []
     }
 }

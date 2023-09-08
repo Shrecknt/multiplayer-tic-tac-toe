@@ -1,11 +1,12 @@
 include!(concat!(env!("OUT_DIR"), "/packets.rs"));
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum BoardCell {
     None,
     X,
     O,
 }
+
 
 impl BoardCell {
     pub fn from_u8(id: u8) -> Result<Self, Box<dyn std::error::Error>> {
@@ -94,5 +95,8 @@ impl Board {
             Some(row) => row.get(x).cloned(),
             None => None,
         }
+    }
+    pub fn occupied(&self, x: usize, y: usize) -> bool {
+        self.get(x, y) != None
     }
 }

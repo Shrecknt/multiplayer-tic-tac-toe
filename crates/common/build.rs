@@ -60,6 +60,7 @@ fn main() {
                             "i16" => "byteorder::ReadBytesExt::read_i16::<byteorder::BigEndian>(&mut buf)?".to_string(),
                             "i32" => "byteorder::ReadBytesExt::read_i32::<byteorder::BigEndian>(&mut buf)?".to_string(),
                             "i64" => "byteorder::ReadBytesExt::read_i64::<byteorder::BigEndian>(&mut buf)?".to_string(),
+                            "usize" => "buf.read_varint::<usize>()?".to_string(),
                             _ => format!("todo!(\"{field_type}\")"),
                         },
                     ));
@@ -111,6 +112,7 @@ fn main() {
                             "i16" => format!("byteorder::WriteBytesExt::write_i16::<byteorder::BigEndian>(&mut res, *{field_name})?"),
                             "i32" => format!("byteorder::WriteBytesExt::write_i32::<byteorder::BigEndian>(&mut res, *{field_name})?"),
                             "i64" => format!("byteorder::WriteBytesExt::write_i64::<byteorder::BigEndian>(&mut res, *{field_name})?"),
+                            "usize" => format!("res.write_varint(*{field_name})?"),
                             _ => format!("todo!(\"{field_type}\")"),
                         },
                     ));

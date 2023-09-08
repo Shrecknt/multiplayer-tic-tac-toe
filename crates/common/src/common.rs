@@ -7,6 +7,24 @@ pub enum BoardCell {
     O,
 }
 
+impl BoardCell {
+    pub fn from_u8(id: u8) -> Result<Self, Box<dyn std::error::Error>> {
+        match id {
+            0 => Ok(Self::None),
+            1 => Ok(Self::X),
+            2 => Ok(Self::O),
+            _ => Err(format!("Bad BoardCell id {id}").into()),
+        }
+    }
+    pub fn to_u8(&self) -> u8 {
+        match self {
+            Self::None => 0,
+            Self::X => 1,
+            Self::O => 2,
+        }
+    }
+}
+
 impl Default for BoardCell {
     fn default() -> Self {
         Self::None
@@ -26,6 +44,15 @@ pub struct Board {
 }
 
 impl Board {
+    pub fn new(width: usize, height: usize) -> Self {
+        let mut res = Self {
+            width,
+            height,
+            cells: Vec::with_capacity(height),
+        };
+        res.cells.fill_with(|| Vec::with_capacity(width));
+        res
+    }
     pub fn put(
         &mut self,
         x: usize,

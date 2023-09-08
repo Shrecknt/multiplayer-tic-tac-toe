@@ -1,20 +1,60 @@
 {
     "Login": {
-        "C2S": [],
-        "S2C": []
+        "C2S": [
+            {
+                "name": "RequestBoard",
+                "fields": []
+            }
+        ],
+        "S2C": [
+            {
+                "name": "UpdateCell",
+                "fields": [
+                    {
+                        "name": "x",
+                        "type": "usize"
+                    },
+                    {
+                        "name": "y",
+                        "type": "usize"
+                    },
+                    {
+                        "name": "cell_type",
+                        "type": "u8"
+                    }
+                ]
+            },
+            {
+                "name": "UpdateBoardSize",
+                "fields": [
+                    {
+                        "name": "width",
+                        "type": "usize"
+                    },
+                    {
+                        "name": "height",
+                        "type": "usize"
+                    }
+                ]
+            },
+            {
+                "name": "BoardSent",
+                "fields": []
+            }
+        ]
     },
     "Play": {
         "C2S": [
             {
-                "name": "PlaceCell",
+                "name": "UpdateCell",
                 "fields": [
                     {
                         "name": "x",
-                        "type": "i32"
+                        "type": "usize"
                     },
                     {
                         "name": "y",
-                        "type": "i32"
+                        "type": "usize"
                     },
                     {
                         "name": "cell_type",
@@ -23,6 +63,24 @@
                 ]
             }
         ],
-        "S2C": []
+        "S2C": [
+            {
+                "name": "UpdateCell",
+                "fields": [
+                    {
+                        "name": "x",
+                        "type": "usize"
+                    },
+                    {
+                        "name": "y",
+                        "type": "usize"
+                    },
+                    {
+                        "name": "cell_type",
+                        "type": "u8"
+                    }
+                ]
+            }
+        ]
     }
 }

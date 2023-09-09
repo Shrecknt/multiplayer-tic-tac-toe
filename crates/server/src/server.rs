@@ -1,12 +1,16 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 
 use common::common::Board;
-use tokio::{net::TcpListener, sync::Mutex};
+use tokio::{
+    net::{tcp::OwnedWriteHalf, TcpListener},
+    sync::Mutex,
+};
 
 use crate::{login, play};
 
 pub struct GameState {
     pub turn: usize,
+    pub user_map: Arc<Mutex<HashMap<SocketAddr, Arc<Mutex<OwnedWriteHalf>>>>>,
 }
 
 pub async fn start_server(hostname: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -19,12 +23,15 @@ pub async fn start_server(hostname: &str) -> Result<(), Box<dyn std::error::Erro
         .put(1, 1, common::common::BoardCell::X)
         .unwrap();
 
-    let state = Arc::new(Mutex::new(GameState { turn: 0 }));
-
-    let mut user_map = HashMap::new();
+    let user_map = Arc::new(Mutex::new(HashMap::new()));
+    let state = Arc::new(Mutex::new(GameState {
+        turn: 0,
+        user_map: user_map.clone(),
+    }));
 
     loop {
         let board = board.clone();
+        let user_map = user_map.clone();
         let state = state.clone();
 
         let (stream, addr) = socket.accept().await?;
@@ -32,15 +39,19 @@ pub async fn start_server(hostname: &str) -> Result<(), Box<dyn std::error::Erro
 
         let wstream = Arc::new(Mutex::new(wstream));
 
-        user_map.insert(addr, wstream.clone());
+        user_map.lock().await.insert(addr, wstream.clone());
 
         tokio::spawn(async move {
-            login::handle_login(&mut rstream, wstream.clone(), board.clone(), &addr)
-                .await
-                .unwrap();
+            match login::handle_login(&mut rstream, wstream.clone(), board.clone(), &addr).await {
+                Ok(_) => {}
+                Err(err) => {
+                    user_map.lock().await.remove(&addr);
+                    panic!("{err}");
+                }
+            }
 
             let team = 0;
-            play::handle_play(
+            match play::handle_play(
                 &mut rstream,
                 wstream.clone(),
                 board.clone(),
@@ -49,7 +60,13 @@ pub async fn start_server(hostname: &str) -> Result<(), Box<dyn std::error::Erro
                 team,
             )
             .await
-            .unwrap();
+            {
+                Ok(_) => {}
+                Err(err) => {
+                    user_map.lock().await.remove(&addr);
+                    panic!("{err}");
+                }
+            }
         });
     }
 }

@@ -6,6 +6,6 @@ edition = "2021"
 [dependencies]
 common = { workspace = true }
 clap = { workspace = true }
-integer-encoding = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
+async-trait = { workspace = true }

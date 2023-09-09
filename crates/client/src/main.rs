@@ -21,11 +21,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let board = Arc::new(Mutex::new(Board::new(0, 0)));
 
     let socket = TcpStream::connect("localhost:21552").await?;
-    let mut socket = socket.into_std()?;
-    socket.set_nonblocking(false)?;
+    let (mut rstream, mut wstream) = socket.into_split();
 
-    login::handle_login(&mut socket, board.clone()).await?;
-    play::handle_play(&mut socket, board.clone()).await?;
+    login::handle_login(&mut rstream, &mut wstream, board.clone())
+        .await
+        .unwrap();
+    play::handle_play(&mut rstream, &mut wstream, board.clone())
+        .await
+        .unwrap();
 
     Ok(())
 }

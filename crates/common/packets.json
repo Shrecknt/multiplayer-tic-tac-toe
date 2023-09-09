@@ -2,11 +2,29 @@
     "Login": {
         "C2S": [
             {
+                "name": "RequestVersion",
+                "fields": [
+                    {
+                        "name": "client_version",
+                        "type": "String"
+                    }
+                ]
+            },
+            {
                 "name": "RequestBoard",
                 "fields": []
             }
         ],
         "S2C": [
+            {
+                "name": "SendVersion",
+                "fields": [
+                    {
+                        "name": "server_version",
+                        "type": "String"
+                    }
+                ]
+            },
             {
                 "name": "UpdateCell",
                 "fields": [
@@ -20,7 +38,7 @@
                     },
                     {
                         "name": "cell_type",
-                        "type": "u8"
+                        "type": "usize"
                     }
                 ]
             },
@@ -58,7 +76,7 @@
                     },
                     {
                         "name": "cell_type",
-                        "type": "u8"
+                        "type": "usize"
                     }
                 ]
             }
@@ -77,7 +95,7 @@
                     },
                     {
                         "name": "cell_type",
-                        "type": "u8"
+                        "type": "usize"
                     }
                 ]
             }

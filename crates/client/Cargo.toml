@@ -7,6 +7,5 @@ edition = "2021"
 common = { workspace = true }
 server = { workspace = true }
 clap = { workspace = true }
-integer-encoding = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }

@@ -61,7 +61,9 @@ pub async fn start_server(hostname: &str) -> Result<(), Box<dyn std::error::Erro
             )
             .await
             {
-                Ok(_) => {}
+                Ok(_) => {
+                    user_map.lock().await.remove(&addr);
+                }
                 Err(err) => {
                     user_map.lock().await.remove(&addr);
                     panic!("{err}");

@@ -5,6 +5,7 @@ use tokio::{net::TcpStream, sync::Mutex};
 use common::common::Board;
 use server::server::start_server;
 
+mod gui;
 pub mod login;
 pub mod play;
 
@@ -18,17 +19,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         });
     }
 
-    let board = Arc::new(Mutex::new(Board::new(0, 0)));
+    let board = Arc::new(parking_lot::Mutex::new(Board::new(0, 0)));
 
     let socket = TcpStream::connect("localhost:21552").await?;
-    let (mut rstream, mut wstream) = socket.into_split();
+    let (mut rstream, wstream) = socket.into_split();
 
-    login::handle_login(&mut rstream, &mut wstream, board.clone())
+    let wstream = Arc::new(Mutex::new(wstream));
+
+    login::handle_login(&mut rstream, wstream.clone(), board.clone())
         .await
         .unwrap();
-    play::handle_play(&mut rstream, &mut wstream, board.clone())
-        .await
-        .unwrap();
+
+    let play_wstream = wstream.clone();
+    let play_board = board.clone();
+    tokio::spawn(async move {
+        play::handle_play(&mut rstream, play_wstream, play_board)
+            .await
+            .unwrap();
+    });
+
+    gui::main(wstream.clone(), board.clone()).unwrap();
+    println!("Exited");
 
     Ok(())
 }

@@ -14,11 +14,13 @@ const REQUEST_VERSION: bool = true;
 
 pub async fn handle_login(
     rstream: &mut OwnedReadHalf,
-    wstream: &mut OwnedWriteHalf,
-    board: Arc<Mutex<Board>>,
+    wstream: Arc<Mutex<OwnedWriteHalf>>,
+    board: Arc<parking_lot::Mutex<Board>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     if REQUEST_VERSION {
         wstream
+            .lock()
+            .await
             .write_all(
                 C2SLoginPacket::RequestVersion {
                     client_version: VERSION_STRING.to_string(),
@@ -43,6 +45,8 @@ pub async fn handle_login(
     }
 
     wstream
+        .lock()
+        .await
         .write_all(C2SLoginPacket::RequestBoard {}.serialize()?.as_slice())
         .await?;
 
@@ -51,11 +55,11 @@ pub async fn handle_login(
         recieve_board_packet = S2CLoginPacket::deserialize(rstream).await?;
         match recieve_board_packet {
             S2CLoginPacket::UpdateCell { x, y, cell_type } => {
-                let mut board = board.lock().await;
+                let mut board = board.lock();
                 board.put(x, y, BoardCell::from_usize(cell_type)?)?;
             }
             S2CLoginPacket::UpdateBoardSize { width, height } => {
-                let mut board = board.lock().await;
+                let mut board = board.lock();
                 board.width = width;
                 board.height = height;
             }

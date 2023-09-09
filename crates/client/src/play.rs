@@ -9,16 +9,18 @@ use tokio::{
 
 pub async fn handle_play(
     rstream: &mut OwnedReadHalf,
-    wstream: &mut OwnedWriteHalf,
-    board: Arc<Mutex<Board>>,
+    wstream: Arc<Mutex<OwnedWriteHalf>>,
+    board: Arc<parking_lot::Mutex<Board>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // println!("Current board state: {:?}", board.lock().await.cells);
     let x: usize = python_input("X: ").unwrap().trim().parse().unwrap();
     let y: usize = python_input("Y: ").unwrap().trim().parse().unwrap();
-    if board.lock().await.occupied(x, y) {
+    if board.lock().occupied(x, y) {
         println!("Occupied!")
     } else {
         wstream
+            .lock()
+            .await
             .write_all(
                 C2SPlayPacket::UpdateCell {
                     x,
@@ -31,7 +33,6 @@ pub async fn handle_play(
             .await?;
         board
             .lock()
-            .await
             .put(x, y, BoardCell::X)
             .expect("TODO: panic message");
     }
@@ -40,7 +41,7 @@ pub async fn handle_play(
         packet = S2CPlayPacket::deserialize(rstream).await?;
         match packet {
             S2CPlayPacket::UpdateCell { x, y, cell_type } => {
-                let mut board = board.lock().await;
+                let mut board = board.lock();
                 board.put(x, y, BoardCell::from_usize(cell_type)?)?;
                 println!("x: {}, y: {}, cell_type: {}", x, y, cell_type);
             }

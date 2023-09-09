@@ -9,3 +9,6 @@ server = { workspace = true }
 clap = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
+eframe = { workspace = true }
+env_logger = { workspace = true }
+parking_lot = { workspace = true }

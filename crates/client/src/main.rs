@@ -3,9 +3,9 @@ use std::sync::Arc;
 use tokio::{net::TcpStream, sync::Mutex};
 
 use common::common::Board;
+use gui;
 use server::server::start_server;
 
-mod gui;
 pub mod login;
 pub mod play;
 

@@ -1,13 +1,10 @@
 [package]
-name = "client"
+name = "gui"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 common = { workspace = true }
-server = { workspace = true }
-gui = { workspace = true }
-clap = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 eframe = { workspace = true }

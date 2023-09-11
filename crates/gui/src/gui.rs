@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use common::common::Board;
-use eframe::egui;
+use eframe::{egui, IconData};
 use tokio::{net::tcp::OwnedWriteHalf, sync::Mutex};
 
 pub fn main(
@@ -14,6 +14,10 @@ pub fn main(
 
     let options = eframe::NativeOptions {
         initial_window_size: Some(egui::vec2(320.0, 240.0)),
+        resizable: false,
+        icon_data: Some(
+            IconData::try_from_png_bytes(include_bytes!("../assets/icon.png")).unwrap(),
+        ),
         ..Default::default()
     };
 

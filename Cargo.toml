@@ -4,6 +4,7 @@ members = ["crates/*"]
 [workspace.dependencies]
 common = { version = "0.1.0", path = "crates/common" }
 server = { version = "0.1.0", path = "crates/server" }
+gui = { version = "0.1.0", path = "crates/gui" }
 clap = { version = "4.3.11", features = ["derive"] }
 integer-encoding = { version = "4.0.0", features = ["tokio_async"] }
 thiserror = "1.0.43"

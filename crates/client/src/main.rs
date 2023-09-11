@@ -39,7 +39,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     gui::main(wstream.clone(), board.clone()).unwrap();
-    println!("Exited");
 
-    Ok(())
+    std::process::exit(0);
 }

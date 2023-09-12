@@ -17,6 +17,15 @@
         ],
         "S2C": [
             {
+                "name": "Kick",
+                "fields": [
+                    {
+                        "name": "reason",
+                        "type": "String"
+                    }
+                ]
+            },
+            {
                 "name": "SendVersion",
                 "fields": [
                     {
@@ -82,6 +91,15 @@
             }
         ],
         "S2C": [
+            {
+                "name": "Kick",
+                "fields": [
+                    {
+                        "name": "reason",
+                        "type": "String"
+                    }
+                ]
+            },
             {
                 "name": "UpdateCell",
                 "fields": [

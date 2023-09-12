@@ -1,7 +1,8 @@
 use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 
-use common::common::Board;
+use common::common::{Board, Packet, S2CLoginPacket, S2CPlayPacket};
 use tokio::{
+    io::AsyncWriteExt,
     net::{tcp::OwnedWriteHalf, TcpListener},
     sync::Mutex,
 };
@@ -46,7 +47,18 @@ pub async fn start_server(hostname: &str) -> Result<(), Box<dyn std::error::Erro
                 Ok(_) => {}
                 Err(err) => {
                     user_map.lock().await.remove(&addr);
-                    panic!("{err}");
+                    let _ = wstream
+                        .lock()
+                        .await
+                        .write_all(
+                            &S2CLoginPacket::Kick {
+                                reason: err.to_string(),
+                            }
+                            .serialize()
+                            .unwrap(),
+                        )
+                        .await;
+                    return;
                 }
             }
 
@@ -66,7 +78,17 @@ pub async fn start_server(hostname: &str) -> Result<(), Box<dyn std::error::Erro
                 }
                 Err(err) => {
                     user_map.lock().await.remove(&addr);
-                    panic!("{err}");
+                    let _ = wstream
+                        .lock()
+                        .await
+                        .write_all(
+                            &S2CPlayPacket::Kick {
+                                reason: err.to_string(),
+                            }
+                            .serialize()
+                            .unwrap(),
+                        )
+                        .await;
                 }
             }
         });

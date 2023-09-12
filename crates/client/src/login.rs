@@ -22,11 +22,10 @@ pub async fn handle_login(
             .lock()
             .await
             .write_all(
-                C2SLoginPacket::RequestVersion {
+                &C2SLoginPacket::RequestVersion {
                     client_version: VERSION_STRING.to_string(),
                 }
-                .serialize()?
-                .as_slice(),
+                .serialize()?,
             )
             .await?;
 
@@ -47,7 +46,7 @@ pub async fn handle_login(
     wstream
         .lock()
         .await
-        .write_all(C2SLoginPacket::RequestBoard {}.serialize()?.as_slice())
+        .write_all(&C2SLoginPacket::RequestBoard {}.serialize()?)
         .await?;
 
     let mut recieve_board_packet: S2CLoginPacket;

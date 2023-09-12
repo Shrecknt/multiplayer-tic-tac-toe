@@ -24,13 +24,12 @@ pub async fn handle_play(
         .lock()
         .await
         .write_all(
-            S2CPlayPacket::UpdateCell {
+            &S2CPlayPacket::UpdateCell {
                 x: 2,
                 y: 1,
                 cell_type: BoardCell::X.to_usize(),
             }
-            .serialize()?
-            .as_slice(),
+            .serialize()?,
         )
         .await?;
 
@@ -42,13 +41,12 @@ pub async fn handle_play(
                     .lock()
                     .await
                     .write_all(
-                        S2CPlayPacket::UpdateCell {
+                        &S2CPlayPacket::UpdateCell {
                             x,
                             y,
                             cell_type: board.lock().await.get(x, y).to_usize(),
                         }
-                        .serialize()?
-                        .as_slice(),
+                        .serialize()?,
                     )
                     .await?;
             }

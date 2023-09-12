@@ -84,7 +84,7 @@ pub fn connection_screen() -> Result<Option<String>, eframe::Error> {
         });
     })?;
 
-    let exit = final_exit.lock().clone();
+    let exit = *final_exit.lock();
     if exit {
         Ok(None)
     } else {
@@ -107,7 +107,7 @@ impl Assets {
             o_texture: None,
         }
     }
-    fn icon_texture(&mut self, ui: &mut egui::Ui) -> &egui::TextureHandle {
+    fn icon_texture(&mut self, ui: &egui::Ui) -> &egui::TextureHandle {
         self.icon_texture.get_or_insert_with(|| {
             ui.ctx().load_texture(
                 "icon",
@@ -116,7 +116,7 @@ impl Assets {
             )
         })
     }
-    fn x_texture(&mut self, ui: &mut egui::Ui) -> &egui::TextureHandle {
+    fn x_texture(&mut self, ui: &egui::Ui) -> &egui::TextureHandle {
         self.x_texture.get_or_insert_with(|| {
             ui.ctx().load_texture(
                 "x",
@@ -125,7 +125,7 @@ impl Assets {
             )
         })
     }
-    fn o_texture(&mut self, ui: &mut egui::Ui) -> &egui::TextureHandle {
+    fn o_texture(&mut self, ui: &egui::Ui) -> &egui::TextureHandle {
         self.o_texture.get_or_insert_with(|| {
             ui.ctx().load_texture(
                 "o",

@@ -3,7 +3,6 @@ use std::sync::Arc;
 use tokio::{net::TcpStream, sync::Mutex};
 
 use common::common::Board;
-use gui;
 use server::server::start_server;
 
 pub mod login;
@@ -35,13 +34,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 continue;
             }
         };
-        match TcpStream::connect(&addr).await {
-            Ok(stream) => {
-                socket = stream;
-                break;
-            }
-            Err(_) => {}
-        };
+        if let Ok(stream) = TcpStream::connect(&addr).await {
+            socket = stream;
+            break;
+        }
     }
     let (mut rstream, wstream) = socket.into_split();
 

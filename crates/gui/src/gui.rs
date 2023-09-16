@@ -1,14 +1,15 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::sync::Arc;
+use std::{collections::LinkedList, sync::Arc};
 
 use common::common::Board;
 use eframe::{egui, IconData};
-use tokio::sync::Mutex;
+use tokio::sync::{mpsc, Mutex};
 
 pub fn main(
     _wstream: Arc<Mutex<(dyn tokio::io::AsyncWrite + Unpin + Sync)>>,
     board: Arc<parking_lot::Mutex<Board>>,
+    mut chat_stream: mpsc::Receiver<(String, String)>,
 ) -> Result<(), eframe::Error> {
     env_logger::init();
 
@@ -23,10 +24,27 @@ pub fn main(
 
     let mut assets = Assets::unloaded();
 
+    let mut chat = LinkedList::new();
+
     eframe::run_simple_native("Tic-Tac-Toe", options, move |ctx, _frame| {
         egui::CentralPanel::default().show(ctx, |ui| {
+            if let Ok((sender, contents)) = chat_stream.try_recv() {
+                if chat.len() > 64 {
+                    chat.pop_front();
+                }
+                chat.push_back(format!("<{}> {}", sender, contents));
+            };
+
             ui.heading("Multiplayer Tic-Tac-Toe");
             ui.label(format!("Board: {:?}", board.lock().cells));
+
+            ui.separator();
+
+            for message in chat.iter() {
+                ui.label(message.as_str());
+            }
+
+            ui.separator();
 
             let icon_texture = assets.icon_texture(ui);
             ui.image(icon_texture, egui::vec2(64.0, 64.0));

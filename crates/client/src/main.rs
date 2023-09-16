@@ -1,8 +1,14 @@
 use std::sync::Arc;
 
-use tokio::{io::AsyncWrite, net::TcpStream, sync::Mutex};
+use tokio::{
+    net::{
+        tcp::{OwnedReadHalf, OwnedWriteHalf},
+        TcpStream,
+    },
+    sync::{mpsc, Mutex},
+};
 
-use common::common::Board;
+use common::common::{Board, DynamicRead, DynamicWrite};
 use server::server::start_server;
 
 pub mod encryption;
@@ -20,6 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let board = Arc::new(parking_lot::Mutex::new(Board::new(0, 0)));
+    let (chat_stream_s, chat_stream_r) = mpsc::channel::<(String, String)>(256);
 
     let socket: TcpStream;
     loop {
@@ -40,14 +47,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             break;
         }
     }
-    let (mut rstream, wstream) = socket.into_split();
+    let (rstream, wstream) = socket.into_split();
 
-    let (mut rstream, wstream) = encryption::handle_encryption(rstream, wstream)
-        .await
-        .unwrap();
+    let (mut rstream, mut wstream) = into_boxed(rstream, wstream);
 
-    let wstream: Arc<Mutex<Box<dyn AsyncWrite + Unpin + Send + Sync>>> =
-        Arc::new(Mutex::new(wstream));
+    const ENCRYPTION_ENABLED: bool = false;
+    if ENCRYPTION_ENABLED {
+        (rstream, wstream) = encryption::handle_encryption(rstream, wstream)
+            .await
+            .unwrap();
+    }
+
+    let wstream: Arc<Mutex<Box<DynamicWrite<'_>>>> = Arc::new(Mutex::new(wstream));
 
     login::handle_login(&mut rstream, wstream.clone(), board.clone())
         .await
@@ -56,12 +67,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let play_wstream = wstream.clone();
     let play_board = board.clone();
     tokio::spawn(async move {
-        play::handle_play(&mut rstream, play_wstream, play_board)
+        play::handle_play(&mut rstream, play_wstream, play_board, chat_stream_s)
             .await
             .unwrap();
     });
 
-    gui::main(wstream.clone(), board.clone()).unwrap();
+    gui::main(wstream.clone(), board.clone(), chat_stream_r).unwrap();
 
     std::process::exit(0);
+}
+
+pub fn into_boxed(
+    rstream: OwnedReadHalf,
+    wstream: OwnedWriteHalf,
+) -> (Box<DynamicRead<'static>>, Box<DynamicWrite<'static>>) {
+    (Box::new(rstream), Box::new(wstream))
 }

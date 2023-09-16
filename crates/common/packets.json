@@ -88,6 +88,15 @@
                         "type": "usize"
                     }
                 ]
+            },
+            {
+                "name": "Chat",
+                "fields": [
+                    {
+                        "name": "contents",
+                        "type": "String"
+                    }
+                ]
             }
         ],
         "S2C": [
@@ -114,6 +123,19 @@
                     {
                         "name": "cell_type",
                         "type": "usize"
+                    }
+                ]
+            },
+            {
+                "name": "Chat",
+                "fields": [
+                    {
+                        "name": "sender",
+                        "type": "String"
+                    },
+                    {
+                        "name": "contents",
+                        "type": "String"
                     }
                 ]
             }

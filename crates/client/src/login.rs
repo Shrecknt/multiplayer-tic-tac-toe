@@ -1,19 +1,16 @@
 use std::sync::Arc;
 
 use common::{
-    common::{Board, BoardCell, C2SLoginPacket, Packet, S2CLoginPacket},
+    common::{Board, BoardCell, C2SLoginPacket, DynamicRead, DynamicWrite, Packet, S2CLoginPacket},
     VERSION_STRING,
 };
-use tokio::{
-    io::{AsyncRead, AsyncWrite, AsyncWriteExt},
-    sync::Mutex,
-};
+use tokio::{io::AsyncWriteExt, sync::Mutex};
 
 const REQUEST_VERSION: bool = true;
 
 pub async fn handle_login(
-    rstream: &mut (dyn AsyncRead + Unpin + Send + Sync),
-    wstream: Arc<Mutex<(dyn AsyncWrite + Unpin + Send + Sync)>>,
+    rstream: &mut DynamicRead<'_>,
+    wstream: Arc<Mutex<DynamicWrite<'_>>>,
     board: Arc<parking_lot::Mutex<Board>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     if REQUEST_VERSION {

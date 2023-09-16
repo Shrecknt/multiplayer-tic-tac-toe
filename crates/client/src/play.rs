@@ -1,15 +1,18 @@
 use std::{io, io::Write, sync::Arc};
 
-use common::common::{Board, BoardCell, C2SPlayPacket, Packet, S2CPlayPacket};
+use common::common::{
+    Board, BoardCell, C2SPlayPacket, DynamicRead, DynamicWrite, Packet, S2CPlayPacket,
+};
 use tokio::{
-    io::{AsyncRead, AsyncWrite, AsyncWriteExt},
-    sync::Mutex,
+    io::AsyncWriteExt,
+    sync::{mpsc, Mutex},
 };
 
 pub async fn handle_play(
-    rstream: &mut (dyn AsyncRead + Unpin + Send + Sync),
-    wstream: Arc<Mutex<(dyn AsyncWrite + Unpin + Send + Sync)>>,
+    rstream: &mut DynamicRead<'_>,
+    wstream: Arc<Mutex<DynamicWrite<'_>>>,
     board: Arc<parking_lot::Mutex<Board>>,
+    chat_stream: mpsc::Sender<(String, String)>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // println!("Current board state: {:?}", board.lock().await.cells);
     let x: usize = python_input("X: ").unwrap().trim().parse().unwrap();
@@ -42,6 +45,9 @@ pub async fn handle_play(
                 let mut board = board.lock();
                 board.put(x, y, BoardCell::from_usize(cell_type)?)?;
                 println!("x: {}, y: {}, cell_type: {}", x, y, cell_type);
+            }
+            S2CPlayPacket::Chat { sender, contents } => {
+                chat_stream.send((sender, contents)).await?;
             }
             _ => panic!("Unexpected packet {:?}", packet),
         }

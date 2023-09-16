@@ -3,7 +3,6 @@ use std::sync::Arc;
 use tokio::{io::AsyncWrite, net::TcpStream, sync::Mutex};
 
 use common::common::Board;
-use gui;
 use server::server::start_server;
 
 pub mod encryption;
@@ -22,8 +21,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let board = Arc::new(parking_lot::Mutex::new(Board::new(0, 0)));
 
-    let socket = TcpStream::connect("localhost:21552").await?;
-    let (rstream, wstream) = socket.into_split();
+    let socket: TcpStream;
+    loop {
+        let addr = match gui::connection_screen() {
+            Ok(addr) => match addr {
+                Some(addr) => addr,
+                None => {
+                    println!("Clicked close button, exiting.");
+                    std::process::exit(0);
+                }
+            },
+            Err(_) => {
+                continue;
+            }
+        };
+        if let Ok(stream) = TcpStream::connect(&addr).await {
+            socket = stream;
+            break;
+        }
+    }
+    let (mut rstream, wstream) = socket.into_split();
 
     let (mut rstream, wstream) = encryption::handle_encryption(rstream, wstream)
         .await

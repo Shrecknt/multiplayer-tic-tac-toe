@@ -21,13 +21,12 @@ pub async fn handle_play(
             .lock()
             .await
             .write_all(
-                C2SPlayPacket::UpdateCell {
+                &C2SPlayPacket::UpdateCell {
                     x,
                     y,
                     cell_type: BoardCell::X.to_usize(),
                 }
-                .serialize()?
-                .as_slice(),
+                .serialize()?,
             )
             .await?;
         board

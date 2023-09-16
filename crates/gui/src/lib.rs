@@ -1,2 +1,2 @@
 mod gui;
-pub use gui::main;
+pub use gui::{connection_screen, main};

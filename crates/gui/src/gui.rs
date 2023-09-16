@@ -40,6 +40,59 @@ pub fn main(
     })
 }
 
+pub fn connection_screen() -> Result<Option<String>, eframe::Error> {
+    let options = eframe::NativeOptions {
+        initial_window_size: Some(egui::vec2(320.0, 240.0)),
+        resizable: false,
+        icon_data: Some(
+            IconData::try_from_png_bytes(include_bytes!("../assets/icon.png")).unwrap(),
+        ),
+        ..Default::default()
+    };
+
+    let mut addr = "localhost:21552".to_owned();
+    let final_addr = Arc::new(parking_lot::Mutex::new("".to_string()));
+    let final_addr_clone = final_addr.clone();
+    let final_exit = Arc::new(parking_lot::Mutex::new(false));
+    let final_exit_clone = final_exit.clone();
+
+    eframe::run_simple_native("Tic-Tac-Toe", options, move |ctx, frame| {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.heading("Multiplayer Tic-Tac-Toe");
+
+            ui.horizontal(|ui| {
+                let addr_label = ui.label("Host address: ");
+                ui.text_edit_singleline(&mut addr)
+                    .labelled_by(addr_label.id);
+            });
+
+            ui.horizontal(|ui| {
+                if ui.button("connect").clicked() {
+                    let mut addr_arc = final_addr_clone.lock();
+                    *addr_arc = addr.clone();
+                    let mut exit_arc = final_exit_clone.lock();
+                    *exit_arc = false;
+                    frame.close();
+                }
+                if ui.button("exit").clicked() {
+                    println!("exit = true");
+                    let mut exit_arc = final_exit_clone.lock();
+                    *exit_arc = true;
+                    frame.close();
+                }
+            });
+        });
+    })?;
+
+    let exit = *final_exit.lock();
+    if exit {
+        Ok(None)
+    } else {
+        let addr = final_addr.lock();
+        Ok(Some(addr.clone()))
+    }
+}
+
 struct Assets {
     icon_texture: Option<egui::TextureHandle>,
     x_texture: Option<egui::TextureHandle>,
@@ -54,7 +107,7 @@ impl Assets {
             o_texture: None,
         }
     }
-    fn icon_texture(&mut self, ui: &mut egui::Ui) -> &egui::TextureHandle {
+    fn icon_texture(&mut self, ui: &egui::Ui) -> &egui::TextureHandle {
         self.icon_texture.get_or_insert_with(|| {
             ui.ctx().load_texture(
                 "icon",
@@ -63,7 +116,7 @@ impl Assets {
             )
         })
     }
-    fn x_texture(&mut self, ui: &mut egui::Ui) -> &egui::TextureHandle {
+    fn x_texture(&mut self, ui: &egui::Ui) -> &egui::TextureHandle {
         self.x_texture.get_or_insert_with(|| {
             ui.ctx().load_texture(
                 "x",
@@ -72,7 +125,7 @@ impl Assets {
             )
         })
     }
-    fn o_texture(&mut self, ui: &mut egui::Ui) -> &egui::TextureHandle {
+    fn o_texture(&mut self, ui: &egui::Ui) -> &egui::TextureHandle {
         self.o_texture.get_or_insert_with(|| {
             ui.ctx().load_texture(
                 "o",

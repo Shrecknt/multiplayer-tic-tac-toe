@@ -27,11 +27,10 @@ pub async fn handle_login(
             .lock()
             .await
             .write_all(
-                S2CLoginPacket::SendVersion {
+                &S2CLoginPacket::SendVersion {
                     server_version: VERSION_STRING.to_string(),
                 }
-                .serialize()?
-                .as_slice(),
+                .serialize()?,
             )
             .await?;
 
@@ -48,41 +47,35 @@ pub async fn handle_login(
         .lock()
         .await
         .write_all(
-            S2CLoginPacket::UpdateBoardSize {
+            &S2CLoginPacket::UpdateBoardSize {
                 width: board.width,
                 height: board.height,
             }
-            .serialize()?
-            .as_slice(),
+            .serialize()?,
         )
         .await?;
 
-    let mut y: usize = 0;
-    for row in &board.cells {
-        let mut x: usize = 0;
-        for cell in row {
+    for (y, row) in board.cells.iter().enumerate() {
+        for (x, cell) in row.iter().enumerate() {
             wstream
                 .lock()
                 .await
                 .write_all(
-                    S2CLoginPacket::UpdateCell {
+                    &S2CLoginPacket::UpdateCell {
                         x,
                         y,
                         cell_type: cell.to_usize(),
                     }
-                    .serialize()?
-                    .as_slice(),
+                    .serialize()?,
                 )
                 .await?;
-            x += 1;
         }
-        y += 1;
     }
 
     wstream
         .lock()
         .await
-        .write_all(S2CLoginPacket::BoardSent {}.serialize()?.as_slice())
+        .write_all(&S2CLoginPacket::BoardSent {}.serialize()?)
         .await?;
 
     Ok(())

@@ -2,14 +2,13 @@ use std::{io, io::Write, sync::Arc};
 
 use common::common::{Board, BoardCell, C2SPlayPacket, Packet, S2CPlayPacket};
 use tokio::{
-    io::AsyncWriteExt,
-    net::tcp::{OwnedReadHalf, OwnedWriteHalf},
+    io::{AsyncRead, AsyncWrite, AsyncWriteExt},
     sync::Mutex,
 };
 
 pub async fn handle_play(
-    rstream: &mut OwnedReadHalf,
-    wstream: Arc<Mutex<OwnedWriteHalf>>,
+    rstream: &mut (dyn AsyncRead + Unpin + Send + Sync),
+    wstream: Arc<Mutex<(dyn AsyncWrite + Unpin + Send + Sync)>>,
     board: Arc<parking_lot::Mutex<Board>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // println!("Current board state: {:?}", board.lock().await.cells);

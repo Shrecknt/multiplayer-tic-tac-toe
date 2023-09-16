@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
-use tokio::{net::TcpStream, sync::Mutex};
+use tokio::{io::AsyncWrite, net::TcpStream, sync::Mutex};
 
 use common::common::Board;
 use gui;
 use server::server::start_server;
 
+pub mod encryption;
 pub mod login;
 pub mod play;
 
@@ -22,9 +23,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let board = Arc::new(parking_lot::Mutex::new(Board::new(0, 0)));
 
     let socket = TcpStream::connect("localhost:21552").await?;
-    let (mut rstream, wstream) = socket.into_split();
+    let (rstream, wstream) = socket.into_split();
 
-    let wstream = Arc::new(Mutex::new(wstream));
+    let (mut rstream, wstream) = encryption::handle_encryption(rstream, wstream)
+        .await
+        .unwrap();
+
+    let wstream: Arc<Mutex<Box<dyn AsyncWrite + Unpin + Send + Sync>>> =
+        Arc::new(Mutex::new(wstream));
 
     login::handle_login(&mut rstream, wstream.clone(), board.clone())
         .await

@@ -39,9 +39,9 @@ pub async fn start_server(hostname: &str) -> Result<(), Box<dyn std::error::Erro
 
         let wstream = Arc::new(Mutex::new(wstream));
 
-        user_map.lock().await.insert(addr, wstream.clone());
-
         tokio::spawn(async move {
+            user_map.lock().await.insert(addr, wstream.clone());
+
             match login::handle_login(&mut rstream, wstream.clone(), board.clone(), &addr).await {
                 Ok(_) => {}
                 Err(err) => {

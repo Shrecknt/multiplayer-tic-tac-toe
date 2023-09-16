@@ -4,10 +4,10 @@ use std::sync::Arc;
 
 use common::common::Board;
 use eframe::{egui, IconData};
-use tokio::{net::tcp::OwnedWriteHalf, sync::Mutex};
+use tokio::sync::Mutex;
 
 pub fn main(
-    _wstream: Arc<Mutex<OwnedWriteHalf>>,
+    _wstream: Arc<Mutex<(dyn tokio::io::AsyncWrite + Unpin + Sync)>>,
     board: Arc<parking_lot::Mutex<Board>>,
 ) -> Result<(), eframe::Error> {
     env_logger::init();

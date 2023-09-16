@@ -5,16 +5,15 @@ use common::{
     VERSION_STRING,
 };
 use tokio::{
-    io::AsyncWriteExt,
-    net::tcp::{OwnedReadHalf, OwnedWriteHalf},
+    io::{AsyncRead, AsyncWrite, AsyncWriteExt},
     sync::Mutex,
 };
 
 const REQUEST_VERSION: bool = true;
 
 pub async fn handle_login(
-    rstream: &mut OwnedReadHalf,
-    wstream: Arc<Mutex<OwnedWriteHalf>>,
+    rstream: &mut (dyn AsyncRead + Unpin + Send + Sync),
+    wstream: Arc<Mutex<(dyn AsyncWrite + Unpin + Send + Sync)>>,
     board: Arc<parking_lot::Mutex<Board>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     if REQUEST_VERSION {

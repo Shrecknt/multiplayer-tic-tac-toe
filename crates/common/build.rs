@@ -4,6 +4,8 @@ use std::path::Path;
 
 use serde_json::{from_slice, Value};
 
+const DEBUG_PACKETS: bool = false;
+
 fn main() {
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("packets.rs");
@@ -128,11 +130,23 @@ fn main() {
             impl_packet_id.push_str(&format!(
                 "            {enum_name}::Unknown {{ .. }} => {packet_id},\n        }}\n    }}\n"
             ));
+            let debug_receive_string = if DEBUG_PACKETS {
+                "\n        println!(\"Receive: {:X?}\", packet);"
+            } else {
+                ""
+            };
             impl_deserialize.push_str(
-                "            _ => Ok(Self::Unknown { packet_id })\n        }\n    }\n    async fn deserialize(\n        stream: &mut DynamicRead<'_>,\n    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {\n        use tokio::io::AsyncReadExt;\n        let packet_length: u32 = read_varint(stream).await.unwrap_or(0).try_into()?;\n        let mut packet = vec![0u8; packet_length as usize];\n        stream.read_exact(&mut packet).await?;\n        let mut packet = packet.as_slice();\n        Self::deserialize_slice(&mut packet)\n    }\n",
+                &format!("            _ => Ok(Self::Unknown {{ packet_id }})\n        }}\n    }}\n    async fn deserialize(\n        stream: &mut DynamicRead<'_>,\n    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {{\n        use tokio::io::AsyncReadExt;\n        let packet_length: u32 = read_varint(stream).await.unwrap_or(0).try_into()?;\n        let mut packet = vec![0u8; packet_length as usize];\n        stream.read_exact(&mut packet).await?;\n        let mut packet = packet.as_slice();{}\n        Self::deserialize_slice(&mut packet)\n    }}\n",
+                debug_receive_string),
             );
+            let debug_send_string = if DEBUG_PACKETS {
+                "\n        println!(\"Send: {:X?}\", res);"
+            } else {
+                ""
+            };
             impl_serialize.push_str(&format!(
-                "            {enum_name}::Unknown {{ .. }} => {{\n                return Err(\"Cannot serialize unknown packet\".into());\n            }}\n        }};\n        #[allow(unreachable_code)]\n        prepend_length(&res)\n    }}\n"
+                "            {enum_name}::Unknown {{ .. }} => {{\n                return Err(\"Cannot serialize unknown packet\".into());\n            }}\n        }};{}\n        #[allow(unreachable_code)]\n        prepend_length(&res)\n    }}\n",
+                debug_send_string
             ));
             enum_impl.push_str(&impl_packet_id);
             enum_impl.push_str(&impl_deserialize);
